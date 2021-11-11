@@ -75,12 +75,12 @@ func askTrueFalse(question string, reader *bufio.Reader) bool {
 	}
 }
 
-func printCursor()  {
+func printCursor() {
 	fmt.Print("-> ")
 }
 
-func printConverted(data []byte)  {
-	fmt.Println("Converted: ",data)
+func printConverted(data []byte) {
+	fmt.Println("Converted: ", data)
 }
 
 func getString(reader *bufio.Reader, isCode bool) string {
@@ -126,7 +126,7 @@ func strToAscii(text string, reader *bufio.Reader) []byte {
 
 	chars = []rune(text)
 
-	for i := 0; i < len(chars) - 1; i++ {
+	for i := 0; i < len(chars); i++ {
 		result = append(result, byte(chars[i]))
 	}
 
@@ -156,8 +156,7 @@ func dataSegCompute(data []byte, reader *bufio.Reader) string {
 	fmt.Println("Attention: this operation will take up to ", length+8, " bytes in the data segment memory")
 	fmt.Println("Please input a starting memory location (DS:[YourLocation])")
 	printCursor()
-	if _, err := fmt.Scan(&location);
-	err != nil {
+	if _, err := fmt.Scan(&location); err != nil {
 		log.Print("Error: Unable to read location: ", err)
 		fmt.Println("Press 'Enter' to continue...")
 		reader.ReadBytes('\n')
@@ -173,21 +172,21 @@ func dataSegCompute(data []byte, reader *bufio.Reader) string {
 	fmt.Println(cleanup())
 
 	currentLoc = location
-	code += fmt.Sprintln("    mov DS:[",currentLoc,"],0    ;EMPTY\n    mov DS:[",currentLoc+1,"],0    ;EMPTY     \n    mov DS:[",currentLoc+2,"],",length,"    ;NUMBER OF CHARS\n    mov DS:[",currentLoc+3,"],0    ;CH = 0\n    mov DS:[",currentLoc+4,"],",currentLoc+8,"    ;START OF CHARS\n    mov DS:[",currentLoc+5,"],0    ;BH = 0\n    mov DS:[",currentLoc+6,"],0    ;DL = 0\n    mov DS:[",currentLoc+7,"],0    ;DH = 0")
+	code += fmt.Sprintln("    mov DS:[", currentLoc, "],0    ;EMPTY\n    mov DS:[", currentLoc+1, "],0    ;EMPTY     \n    mov DS:[", currentLoc+2, "],", length, "    ;NUMBER OF CHARS\n    mov DS:[", currentLoc+3, "],0    ;CH = 0\n    mov DS:[", currentLoc+4, "],", currentLoc+8, "    ;START OF CHARS\n    mov DS:[", currentLoc+5, "],0    ;BH = 0\n    mov DS:[", currentLoc+6, "],0    ;DL = 0\n    mov DS:[", currentLoc+7, "],0    ;DH = 0")
 	code += fmt.Sprintln()
-	code += fmt.Sprintln("    mov DS:[",currentLoc,"],AX   ;SAVE AX AND EMPTY IT\n    xchg DS:[",currentLoc+2,"],CX  ;SAVE CX AND LOAD CHAR COUNTER\n    xchg DS:[",currentLoc+4,"],BX  ;SAVE AND LOAD POINTER\n    xchg DS:[",currentLoc+6,"],DX  ;SAVE AND LOAD CHARACTER")
+	code += fmt.Sprintln("    mov DS:[", currentLoc, "],AX   ;SAVE AX AND EMPTY IT\n    xchg DS:[", currentLoc+2, "],CX  ;SAVE CX AND LOAD CHAR COUNTER\n    xchg DS:[", currentLoc+4, "],BX  ;SAVE AND LOAD POINTER\n    xchg DS:[", currentLoc+6, "],DX  ;SAVE AND LOAD CHARACTER")
 	code += fmt.Sprintln()
 
 	i = 0
-	for currentLoc+=8; uint32(currentLoc)<uint32(length)+8+uint32(location); currentLoc++ {
-		code += fmt.Sprintln("    mov DS:[",currentLoc,"],",data[i]," 	 ;MOVE CHARS")
+	for currentLoc += 8; uint32(currentLoc) < uint32(length)+8+uint32(location); currentLoc++ {
+		code += fmt.Sprintln("    mov DS:[", currentLoc, "],", data[i], " 	 ;MOVE CHARS")
 		i++
 	}
 	code += fmt.Sprintln()
 	code += fmt.Sprintln("    mov AX,0        ;EMPTY AX\n    mov AH,2        ;OUTPUT MODE")
 	code += fmt.Sprintln("loopPrint:\n    mov DL,DS:[BX]  ;LOAD CURRENT CHAR IN MEMORY\n    int 21h         ;PRINT\n    inc BX          ;INCREMENT POINTER\n    loop loopPrint")
 	code += fmt.Sprintln()
-	code += fmt.Sprintln("    mov AX,DS:[",location,"]\n    mov CX,DS:[",location+2,"]\n    mov BX,DS:[",location+4,"]\n    mov DX,DS:[",location+6,"]")
+	code += fmt.Sprintln("    mov AX,DS:[", location, "]\n    mov CX,DS:[", location+2, "]\n    mov BX,DS:[", location+4, "]\n    mov DX,DS:[", location+6, "]")
 
 	fmt.Println(code)
 	fmt.Println(cleanup())
@@ -202,8 +201,7 @@ func codeSegCompute(data []byte, reader *bufio.Reader) string {
 	code = ""
 	fmt.Println("Please input a memory location for a backup of AX and DX in order to resume execution at a later point, the code will need 4 bytes to work (DS:[YourLocation])")
 	printCursor()
-	if _, err := fmt.Scan(&location);
-		err != nil {
+	if _, err := fmt.Scan(&location); err != nil {
 		log.Print("Error: Unable to read location: ", err)
 		fmt.Println("Press 'Enter' to continue...")
 		reader.ReadBytes('\n')
@@ -217,20 +215,20 @@ func codeSegCompute(data []byte, reader *bufio.Reader) string {
 
 	fmt.Println(cleanup())
 
-	code += fmt.Sprintln("    mov DS:[",location,"],AX   ;SAVE AX\n    mov DS:[",location+2,"],DX   ;SAVE DX\n    mov AH,2        ;PREPARE FOR OUTPUT")
+	code += fmt.Sprintln("    mov DS:[", location, "],AX   ;SAVE AX\n    mov DS:[", location+2, "],DX   ;SAVE DX\n    mov AH,2        ;PREPARE FOR OUTPUT")
 	code += fmt.Sprintln()
-	for i=0; i<len(data); i++ {
-		code += fmt.Sprintln("    mov DL, ",data[i]," ;LOAD CHARACTER\n    int 21h     ;BIOS INTERRUPT FOR PRINTING")
+	for i = 0; i < len(data); i++ {
+		code += fmt.Sprintln("    mov DL, ", data[i], " ;LOAD CHARACTER\n    int 21h     ;BIOS INTERRUPT FOR PRINTING")
 	}
 	code += fmt.Sprintln()
-	code += fmt.Sprintln("    mov DX,DS:[",location+2,"]\n    mov AX,DS:[",location,"]")
+	code += fmt.Sprintln("    mov DX,DS:[", location+2, "]\n    mov AX,DS:[", location, "]")
 
 	fmt.Println(code)
 	fmt.Println(cleanup())
 	return code
 }
 
-func writeToFile(code string, reader *bufio.Reader)  {
+func writeToFile(code string, reader *bufio.Reader) {
 	var bytes []byte
 	var text string
 
@@ -245,7 +243,7 @@ func writeToFile(code string, reader *bufio.Reader)  {
 	file, err1 := os.Create(text)
 
 	if err1 != nil {
-		fmt.Println("Error: unable to create the assembly file please save the code above, the program will exit: ",err1)
+		fmt.Println("Error: unable to create the assembly file please save the code above, the program will exit: ", err1)
 		fmt.Println("Press 'Enter' to continue...")
 		reader.ReadBytes('\n')
 		os.Exit(1)
@@ -253,7 +251,9 @@ func writeToFile(code string, reader *bufio.Reader)  {
 
 	defer func(file *os.File) {
 		err := file.Close()
-		if err != nil {}}(file)
+		if err != nil {
+		}
+	}(file)
 
 	_, err2 := file.Write(bytes)
 
